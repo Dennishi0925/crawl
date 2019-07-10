@@ -1,0 +1,38 @@
+---
+title: "Untitled"
+author: "Dennis Tseng"
+date: "7/8/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+1. yahoo相關關鍵字丟到dcard search
+2. index data frame 創建, 加上標題, 連結, id等column
+3. 拿index去抓每篇文, 記得加上ID
+4. 分成主文跟回文的data frame
+5. 資料清洗後上傳到google drive
+6. 每小時重複task
+7. 寫信通知
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

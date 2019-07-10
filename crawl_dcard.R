@@ -17,6 +17,7 @@ html_raw <- url_raw %>% read_html()
 index_title <- html_raw %>% html_nodes(".PostEntry_unread_2U217-") %>% html_text()
 index_link <- html_raw %>% html_nodes(".PostEntry_root_V6g0rd") %>% html_attr("href")
 index_board <- html_raw %>% html_nodes(".PostEntry_forum_1m8nJA") %>% html_text()
+index_date <- html_raw %>% html_nodes(".PostEntry_published_229om7") %>% html_text()
 index_author <- html_raw %>% html_nodes(".hSAyoj") %>% #加這個是避免跑到上面的話題跟卡稱
   html_nodes(".PostAuthor_root_3vAJfe") %>% html_text()
 # index_reacations <- html_raw %>% html_nodes(".hlvyVg") %>% html_text()
@@ -28,16 +29,22 @@ index_meta <- html_raw %>% html_nodes(".PostEntry_meta_1lGUFm") %>% html_text()
 # 有些摘要跑出來是文字摘要但有些是特定文章回應所以換個方式
 index_content <- html_raw %>% html_nodes(".PostEntry_content_g2afgv") %>% html_text()
 
-df_index <- tibble(index_title,index_link,index_board,index_author,index_meta,index_content) %>%
+df_index <- tibble(index_date,index_title,index_link,index_board,index_author,index_meta,index_content) %>%
   mutate(index_link = str_c("https://www.dcard.tw", index_link)) %>%
   mutate(index_content = str_remove(index_content, index_title)) %>%
   mutate(index_content = str_remove(index_content, index_meta)) %>%
   mutate(index_content = str_remove_all(index_content, "\\\n")) %>%
   rename(index_excerpt = index_content) %>%
+  mutate(index_date = str_replace_all(index_date, "月", "-")) %>%
+  mutate(index_date = str_remove_all(index_date, "日")) %>%
+  mutate(index_date = str_c(year(as.POSIXct(Sys.time(), tz="Asia/Taipei")), index_date, sep = "-")) %>%
+  mutate(index_date = ymd_hm(index_date)) %>%
+  mutate(index_wday = lubridate::wday(index_date)) %>% 
   mutate(id = row_number()) %>%
-  select(index_board, index_title, index_excerpt, index_author, index_meta, index_link, id)
+  select(index_date, index_board, index_title, index_excerpt, index_author, index_meta, index_link, index_wday, id)
 
 
+ 
 ###3. 拿index去抓每篇文, 記得加上ID
 
 #前置作業: crawler function and df pre-wrote
@@ -48,7 +55,7 @@ df_comment <- list()#tibble(comment_floor='', comment_author_school='', comment_
 id_gg <- vector()
 
 #for loop
-for(i in 1:2) {
+for(i in 1:10) {
   # i = 2
   j = (i*10) - 9
   k = j + 9
@@ -137,36 +144,56 @@ closeAllConnections()
 gc()
 
 ###4. 分成主文跟回文的data frame
+start_date <- as.POSIXct("2019-07-06 16:00:00 CST")
+week(as.POSIXct("2019-07-06 16:00:00 CST"))
+
+
 df_index %>% dim()
 df_article %>% dim()
 df_comment %>% length()
 
-df_index %>% 
+df_index_previous <- read_csv(str_c("/Users/dtseng02/Documents/CRM/cralwer/df_article_",week(as.POSIXct(Sys.Date(), tz="Asia/Taipei"))-1,".csv"))
+df_index_new <- df_index %>% 
+  mutate(new_tag = if_else(index_date > as.POSIXct("2019-07-06 16:00:00 CST"), "new", "old")) %>%
+  filter(new_tag == 'new') %>%
   mutate(hyperlink = str_c('=HYPERLINK("',index_link,'","',index_title,'")')) %>%
-  select(-id) %>%
-  write_csv("/Users/dtseng02/Documents/CRM/cralwer/df_index.csv")
-df_article %>% write_csv("/Users/dtseng02/Documents/CRM/cralwer/df_article.csv")
+  select(-id)
+df_index_new %>%
+  write_csv(str_c("/Users/dtseng02/Documents/CRM/cralwer/df_article_",week(as.POSIXct(Sys.Date(), tz="Asia/Taipei")),".csv"))
 
-df_article_comment_raw <- 
-  df_article %>%
-  left_join(df_comment %>% bind_rows(.id = "article_id"), by = "article_id")
+df_index_current <- read_csv(str_c("/Users/dtseng02/Documents/CRM/cralwer/df_article_",week(as.POSIXct(Sys.Date(), tz="Asia/Taipei")),".csv"))
+df_index_current %>% write_csv("/Users/dtseng02/Documents/CRM/cralwer/df_article.csv")
 
-df_article_check <- read_csv("/Users/dtseng02/Documents/CRM/cralwer/df_article.csv")
 ###5. 資料清洗後上傳到google drive
 library(googledrive)
 library(googlesheets4)
 
 gd_crawler_dcard <- drive_get("~/crawler/crawler_dcard")
 gd_crawler_dcard <- drive_get("~/crawler/crawler_dcard")
-gd_crawler_dcard %>% drive_update(media = "/Users/dtseng02/Documents/CRM/cralwer/df_index.csv")
+gd_crawler_dcard %>% drive_update(media = "/Users/dtseng02/Documents/CRM/cralwer/df_article.csv")
 
 ###6. 每小時重複task
-library(cronR)
-df_article %>% dim()
+#please refer to "cron_dcard.r"
 
 ###7. 寫信通知
-install.packages("gmailr")
+library(gmailr)
+library(glue)
+use_secret_file("/Users/dtseng02/Documents/CRM/cralwer/gmailr-yahoo.json")
 
-df_article %>% clipr::write_clip()
+test_email <- mime(
+  To = "dennis.tseng@verizonmedia.com",
+  From = "dennis.tseng@verizonmedia.com",
+  Subject = "this is just a gmailr test",
+  body = "Can you hear me now?")
+send_message(test_email)
 
-http://www.cninsights.com/news/detail.aspx?tid=1601
+df_index_current %>% mutate(new_tag = if_else(index_date > as.POSIXct("2019-07-06 16:00:00 CST"), "new", "old")) %>%
+  filter() 
+week(as.POSIXct(Sys.time(), tz="Asia/Taipei")) >= week(as.POSIXct("2019-07-06 16:00:00 CST"))
+df_index_current <- read_csv(str_c("/Users/dtseng02/Documents/CRM/cralwer/df_article_",week(as.POSIXct(Sys.Date(), tz="Asia/Taipei")),".csv"))
+df_index_current %>% write_csv("/Users/dtseng02/Documents/CRM/cralwer/df_article.csv")
+
+
+
+https://www.mobile01.com/googlesearch.php?q=yahoo&siteurl=www.mobile01.com%2F&ref=www.google.com%2F&ss=694j140286j5
+https://www.mobile01.com/googlesearch.php?q=yahoo&siteurl=www.mobile01.com%2F&ref=www.google.com%2F&ss=694j140286j5
