@@ -1,0 +1,57 @@
+---
+title: "Build a Social Listening Tool Yourself"
+author: "Dennis Tseng"
+date: 2019-07-10
+top: false
+output: html_document
+categories: ["R"] 
+tags: ["Social Listening", "Crawling"]
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+你不一定聽過社群聆聽(social listening)，但你一定曾經聽過相似的概念。簡單來說，社群聆聽就是聆聽社群上的使用者都在談論什麼。對社群小編來說，掌握當下正熱的話題，寫文案或下標題時才能跟上時事；對品牌經營者來說，可以從社群端了解潛在顧客需求，進而調整行銷策略；對客服人員來說，若能夠找到對產品有疑慮或者不滿意服務的消費者，主動解決問題可以大幅提升顧客滿意度；對公關人員來說，實時監控社群並且提早出手，有機會避免大型公關危機爆發。就如同上面舉的多樣例子，社群聆聽不只讓你可以知道現在社群上正在談論什麼，更能夠讓你在掌握趨勢後主動出擊，無論是政治宣傳的網軍，或是商業常見的水軍/寫手，都是口碑操作的具體呈現。
+
+以台灣本土廠商開發的社群聆聽工具而言，除了專精於Facebook的QSearch公司以外，意藍(elad)開發的opview以及大數聚開發的keypo可以監控全通路的社群網站(包含Facebook, Ptt, mobile01等)與新聞頻道。因為國內使用者較少使用twitter，故國內廠商目前並未監控twitter，但國外的社群聆聽工具多半會將其納入監控頻道。
+
+然而，對新創公司或是中小企業來說，因為預算問題，雖然有理解社群的需求，卻可能難以負擔上述工具的收費，這種情況要怎麼辦呢？若你會R語言(當然python也可以唷)的話，就算沒有錢錢購買專業的產品，也可以用R寫出簡單的社群聆聽工具喔！
+
+在一股腦開始爆寫code寫出華麗的爬蟲之前，如果將這次的專案定義為「開發一個能夠定期聆聽社群資料的工具」，那我們可以先遵循產品開發的步驟，從潛在使用者的需求出發，列出user story，設計對應的feature後再進行開發。倘若你是一位經營某間鎖定年輕人客群潮流服飾品牌的小老闆，有在Facebook經營品牌的粉絲專頁，除了看Facebook的洞察報告以外，平常會有什麼社群聆聽的需求呢？對小老闆來說，可能會想知道下列的事情：
+- 了解社群像是Ptt或dcard上，大家怎麼討論自己的品牌
+- 若社群上出現針對店家服務或產品的負評，能夠及時上去回應
+- 其他競爭的品牌都怎麼經營臉書，網友又是怎麼看待彼此
+- 想知道跟服飾有關的熱門討論都在講些什麼
+- 因為擔心自己跟不上年輕人想法，想知道年輕人的話題
+
+雖然不是專業的工程師，但我們也知道在開發功能時需要注重優先順序(prioritized)的概念，上面的需求有輕重緩急，對小老闆來說，最重要的功能應該還是前兩個，也就是監控品牌在社群上的相關討論，並且能做到定時更新以便及時回應，若時間充足，可以加上競品與服飾領域的關鍵字；想知道年輕人的想法，可以不只觀察衣服討論版，將規模放大到全站。稍微將上面的需求對應到實際開發功能的具體呈現：　a.關鍵字監控 b.定時更新 c.提醒。
+
+確認要開發的功能後，另外一個很重要的步驟是將待開發的功能切成模組(module)後分工。底下將以Dcard為例子，進行簡單的任務拆分，Ptt, mobile01等皆可以比照辦理：
+
+1. 將品牌相關關鍵字(如GAP, Zara等)丟到dcard search
+2. index data frame 創建, 加上標題, 連結, id等column
+3. 拿index去抓每篇文, 記得加上ID
+4. 分成主文跟回文的data frame
+5. 資料清洗後上傳到google drive
+6. 每小時重複task
+7. 寫信通知
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+library(tidyverse)
+library(rvest)
+library(httr)
+library(beepr)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
