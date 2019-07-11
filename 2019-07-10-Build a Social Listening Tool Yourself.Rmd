@@ -14,44 +14,257 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-你不一定聽過社群聆聽(social listening)，但你一定曾經聽過相似的概念。簡單來說，社群聆聽就是聆聽社群上的使用者都在談論什麼。對社群小編來說，掌握當下正熱的話題，寫文案或下標題時才能跟上時事；對品牌經營者來說，可以從社群端了解潛在顧客需求，進而調整行銷策略；對客服人員來說，若能夠找到對產品有疑慮或者不滿意服務的消費者，主動解決問題可以大幅提升顧客滿意度；對公關人員來說，實時監控社群並且提早出手，有機會避免大型公關危機爆發。就如同上面舉的多樣例子，社群聆聽不只讓你可以知道現在社群上正在談論什麼，更能夠讓你在掌握趨勢後主動出擊，無論是政治宣傳的網軍，或是商業常見的水軍/寫手，都是口碑操作的具體呈現。
+你不一定聽過社群聆聽(social listening)，但你一定曾經聽過相似的概念。簡單來說，社群聆聽就是聆聽社群上的使用者都在談論什麼。對社群小編來說，掌握當下正熱的話題，寫文案或下標題時才能跟上時事；對品牌經營者來說，可以從社群端了解顧客的用戶輪廓，進而調整並優化行銷策略；對投放廣告的業主來說，若找來KOL宣傳產品，沒有追蹤宣傳成效的正確方法很難向老闆交代；對客服人員來說，若能夠找到對產品有疑慮或者不滿意服務的消費者，主動解決問題可以大幅提升顧客滿意度；對公關人員來說，實時監控社群並且在負評擴散前介入，有機會避免大型公關危機爆發。就如同上面舉的多樣例子，社群聆聽不只讓你可以知道現在社群上正在談論什麼，更能夠讓你在掌握趨勢後主動出擊，無論是政治宣傳的網軍，或是商業常見的水軍/寫手，都是口碑操作的具體呈現。
 
-以台灣本土廠商開發的社群聆聽工具而言，除了專精於Facebook的QSearch公司以外，意藍(elad)開發的opview以及大數聚開發的keypo可以監控全通路的社群網站(包含Facebook, Ptt, mobile01等)與新聞頻道。因為國內使用者較少使用twitter，故國內廠商目前並未監控twitter，但國外的社群聆聽工具多半會將其納入監控頻道。
+以台灣本土廠商開發的社群聆聽工具而言，除了專精於Facebook的QSearch公司以外，意藍(elad)開發的OPview以及大數聚(旗下有dailyveiw網路溫度計)開發的keypo可以監控全通路/頻道(不同公司稱呼不同)的社群網站(包含Facebook, Ptt, Youtube, mobile01, babyhome, 伊莉 等)與新聞頻道等。這些社群聆聽工具會將各個通路/頻道的討論抓下，客戶再依照需求選擇適合的方案，最常見的是特定關鍵字的監控，此外也有進一步購買語意分析的相關服務，詳情可以到更大社群聆聽工具的解決方案處查詢。另外值得一提的是，因為台灣用戶習慣使用Facebook與PTT，所以國內廠商目前多半並未監控twitter，但twitter是國外的社群聆聽工具的重點監控頻道之一。
 
-然而，對新創公司或是中小企業來說，因為預算問題，雖然有理解社群的需求，卻可能難以負擔上述工具的收費，這種情況要怎麼辦呢？若你會R語言(當然python也可以唷)的話，就算沒有錢錢購買專業的產品，也可以用R寫出簡單的社群聆聽工具喔！
+雖然社群聆聽有很多好處，但是對新創公司或是中小企業來說，因為預算問題，雖然有需求但有可能難以負擔收費，這種情況要怎麼辦呢？這就是這篇文章的目的，如果你會R語言(當然python也可以唷)的話，就算沒有錢錢購買專業產品，也可以做到社群聆聽喔！底下會從一個品牌端用戶的角度出發，試著用R寫出一個簡單的社群聆聽工具！
 
-在一股腦開始爆寫code寫出華麗的爬蟲之前，如果將這次的專案定義為「開發一個能夠定期聆聽社群資料的工具」，那我們可以先遵循產品開發的步驟，從潛在使用者的需求出發，列出user story，設計對應的feature後再進行開發。倘若你是一位經營某間鎖定年輕人客群潮流服飾品牌的小老闆，有在Facebook經營品牌的粉絲專頁，除了看Facebook的洞察報告以外，平常會有什麼社群聆聽的需求呢？對小老闆來說，可能會想知道下列的事情：
-- 了解社群像是Ptt或dcard上，大家怎麼討論自己的品牌
-- 若社群上出現針對店家服務或產品的負評，能夠及時上去回應
-- 其他競爭的品牌都怎麼經營臉書，網友又是怎麼看待彼此
+## User Story
+
+在埋頭爆寫code, 徒手刻出華麗的爬蟲之前(一定會被Edward電爆)(Edward是來自IB的大神)(希望Edward不會發現)，還是要回到用戶的角度，想想對使用者來說，她們會重視什麼功能？使用情境會是什麼？希望能夠用這個產品滿足什麼需求？我們可以先遵循產品開發的步驟，從使用者的需求出發，列出user story，設計對應的feature後再進行開發。想像一下，有一位經營潮流服飾品牌的老闆小翔，因為小翔的品牌鎖定年輕人客群，所以沒事的時候小翔就會打開Dcard跟Ptt，看有沒有人在討論自己賣的衣服。因為小翔的品牌不大，生意好的時候三四篇討論就是極限了，生意普通的時候甚是一天不到一篇。所以對小翔來說，她可能至少會想知道下列的事情：
+
+- 了解社群像是Ptt或dcard上，大家怎麼討論自己的品牌   
+- 若社群上出現針對店家服務或產品的負評，能夠及時上去回應   
+- 競爭的品牌都怎麼經營社群，社群活動宣傳的成效又大概怎樣   
+
+如果小翔的品牌成長到UQ, ZARA那種規模，她可能還會想知道：
 - 想知道跟服飾有關的熱門討論都在講些什麼
 - 因為擔心自己跟不上年輕人想法，想知道年輕人的話題
 
-雖然不是專業的工程師，但我們也知道在開發功能時需要注重優先順序(prioritized)的概念，上面的需求有輕重緩急，對小老闆來說，最重要的功能應該還是前兩個，也就是監控品牌在社群上的相關討論，並且能做到定時更新以便及時回應，若時間充足，可以加上競品與服飾領域的關鍵字；想知道年輕人的想法，可以不只觀察衣服討論版，將規模放大到全站。稍微將上面的需求對應到實際開發功能的具體呈現：　a.關鍵字監控 b.定時更新 c.提醒。
+雖然不是專業的工程師，但我們知道自己的精力有限，在開發功能時需要注重優先順序(prioritized)，小翔的需求有輕重緩急，作為品牌經營者，最重要的功能還是前兩個，也就是監控品牌在社群上的相關討論，並且能做到定時更新以便及時回應，若時間充足，可以加上競品與服飾領域的關鍵字；想知道年輕人的想法，可以不只觀察衣服討論版，將規模放大到全站。稍微將上面的需求對應到實際開發功能的具體呈現，大概是下面三個關鍵：　a.品牌相關詞監控 b.定時更新 c.提醒。
 
-確認要開發的功能後，另外一個很重要的步驟是將待開發的功能切成模組(module)後分工。底下將以Dcard為例子，進行簡單的任務拆分，Ptt, mobile01等皆可以比照辦理：
+確認要開發的功能後，接下來就要想怎麼開發了。如果是工程師團隊，會有不同的開發時程分配與分工方法，但因為期末報告組員都只有自己，所以沒人可以分工，為了加快效率，有一個很重要的步驟是是將待開發的功能切成模組(module)後分工，也就是所謂模組化的概念，底下會先以Dcard為例子，進行簡單的任務拆分，Ptt, mobile01等皆可以比照辦理，也會補充說明不同類型的社群網站/論壇要用什麼方法處理比較好。
 
-1. 將品牌相關關鍵字(如GAP, Zara等)丟到dcard search
-2. index data frame 創建, 加上標題, 連結, id等column
-3. 拿index去抓每篇文, 記得加上ID
-4. 分成主文跟回文的data frame
-5. 資料清洗後上傳到google drive
-6. 每小時重複task
-7. 寫信通知
+1. 將品牌相關關鍵字(如GAP, Zara等)丟到dcard 搜尋頁面
+2. 抓下搜尋頁面的文章資訊作為索引(index)
+3. 利用索引連結抓下對應到文章的內文與回應
+4. 分別整理(data cleansing)索引,主文,回文的資料表，依照需求連結不同資料表(data joining)
+5. 將爬下的上傳到google spreadsheet(視需求也可輸出csv/excel/txt檔案)
+6. 寄信給老闆小翔通知有什麼新的品牌相關討論
+7. 每天都可以自動更新
 
-```{r cars}
-summary(cars)
-```
+其實在規劃的時候沒辦法一下就列好上面的步驟，因為使用者端的需求並不是線性的，要將用戶的需求映射(mapping)到開發的流程中。以每天自動更新而言，這是老闆小翔一開始最重視的功能，如果還要花時間執行爬蟲程式，小翔就不用顧店了，但是在寫程式的時候，定期排程(schedule)的任務(task)已經在很後面一步了，所以開發人員一定要花時間畫好流程圖！這是自己最大的體悟。
 
-## Including Plots
+底下就是將每一個小任務的程式了！
 
-You can also embed plots, for example:
+## code
 
-```{r pressure, echo=FALSE}
+### 1. 將品牌相關關鍵字(底下以zara為例子)丟到dcard搜尋頁面
+
+```{r warning=FALSE}
+### load needed package
 library(tidyverse)
+library(lubridate)
 library(rvest)
 library(httr)
-library(beepr)
+
+### 關鍵字丟到dcard search
+url_raw <- "https://www.dcard.tw/search/general?query=zara"
+
+### 利用rvest::read_html()讀取網址資訊
+html_raw <- url_raw %>% read_html()
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### 2. 抓下搜尋頁面的文章資訊作為索引(index)
+
+```{r warning=FALSE}
+### 利用rvest:html_nodes()讀取不同節點的資訊，包含文章標題/連結/作者等
+index_title <- html_raw %>% html_nodes(".PostEntry_unread_2U217-") %>% html_text()
+index_link <- html_raw %>% html_nodes(".PostEntry_root_V6g0rd") %>% html_attr("href")
+index_board <- html_raw %>% html_nodes(".PostEntry_forum_1m8nJA") %>% html_text()
+index_date <- html_raw %>% html_nodes(".PostEntry_published_229om7") %>% html_text()
+index_author <- html_raw %>% html_nodes(".hSAyoj") %>% html_nodes(".PostAuthor_root_3vAJfe") %>% html_text()
+index_meta <- html_raw %>% html_nodes(".PostEntry_meta_1lGUFm") %>% html_text()
+index_content <- html_raw %>% html_nodes(".PostEntry_content_g2afgv") %>% html_text()
+
+### 將上面抓下來的資訊整合成一個資料表，再進行簡單的清理
+df_index <- tibble(index_date,index_title,index_link,index_board,index_author,index_meta,index_content) %>%
+  mutate(index_link = str_c("https://www.dcard.tw", index_link)) %>%
+  mutate(index_content = str_remove(index_content, index_title)) %>%
+  mutate(index_content = str_remove(index_content, index_meta)) %>%
+  mutate(index_content = str_remove_all(index_content, "\\\n")) %>%
+  rename(index_excerpt = index_content) %>%
+  mutate(index_date = str_replace_all(index_date, "月", "-")) %>%
+  mutate(index_date = str_remove_all(index_date, "日")) %>%
+  mutate(index_date = str_c(lubridate::year(as.POSIXct(Sys.time(), tz="Asia/Taipei")), index_date, sep = "-")) %>%
+  mutate(index_date = ymd_hm(index_date)) %>%
+  mutate(index_wday = lubridate::wday(index_date)) %>% 
+  mutate(id = row_number()) %>%
+  select(index_date, index_board, index_title, index_excerpt, index_author, index_meta, index_link, index_wday, id)
+
+### 最後資料表的長相是這樣
+df_index %>% head(5)
+```
+
+### 3. 利用索引連結抓下對應到文章的內文與回應(這步視需求而定，可能index資訊就夠了)
+
+這段稍微複雜一點，我的主要架構是先進行爬蟲的前置作業，而後以迴圈重複解析資料，底下簡短說明一下大致概念：
+
+a. 因為爬蟲常常遇到連結死掉的問題，所以前置作業使用了purrr包的好朋友possibly()，把read_html()包在裡面，如果read_html()抓不到東西，就會變成null，後面解析資料的時候又使用了purrr包的另一個好朋友compact()把null的資料清掉，這樣一來迴圈就不會被迫中斷了！傳統上都是使用 trycatch 的方式應對error出現的情形，purrr()的幾個好用函數讓我們可以更好的應對錯誤。另外前置作業也預先創建了空的dataframe/list，等待爬蟲開始後便可以填入。   
+b. 實際爬蟲主要是在迴圈裏面進行，這邊使用了purrr::map()，一次同時處理十篇文章。一開始針對可能出現的連結死掉情況做了預防措施，而後分別爬下主文與回應，最後在讓迴圈休息，因為本篇重點不是爬蟲code怎麼寫的效能問題，有興趣的朋友可以搜尋一下爬蟲相關資源，之前上課時老師也有提到其他爬蟲的做法譬如說使用request/get等方法，或是不處理html，著重於JSON檔案等。都是可以參考的方向！
+
+```{r warning=FALSE}
+### 前置作業: crawler function
+p_read_html <- possibly(read_html, otherwise = NULL)
+
+### 前置作業: pre-wrote dataframe/list
+df_article <- tibble(article_link='', article_board='', article_title='', article_author='', article_author_school='', article_text='', article_love='', article_reply='', article_date="") %>% filter(row_number()<1)
+df_comment <- list()
+
+### 迴圈重複解析資料
+for(i in 1:2) {
+  
+  # 一次抓十個網址不要造成人家負擔
+  j = (i*10) - 9
+  k = j + 9
+  
+  # 解析網址變成html
+  html_raw = df_index[j:k,] %>% pull(index_link) %>% 
+    map(function(x){x %>% p_read_html()}) %>% 
+    set_names(pull(df_index[j:k,"id"])) %>% compact()
+  
+  # 怕有些連結死掉，雖然real time的應該不太會但是保險起見
+  html_raw_index <- html_raw %>% 
+    map(function(x){x %>% html_nodes(".Post_title_2O-1el") %>% html_text()}) %>%
+    map_lgl(function(x){!is.na(x)})
+   
+  html_raw_f <- html_raw[html_raw_index]
+  
+  # 文章部分
+  
+  article_id <- names(html_raw_f)
+  article_title <- html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".Post_title_2O-1el") %>% html_text()})
+  article_author <- html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".PostHeader_uid_3g_pzg") %>% html_text()}) %>%
+    map(function(x){if(length(x)==0) x = NA_character_ else(x)})
+  article_author_school <- html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".PostHeader_author_3AAMDh .PostAuthor_root_3vAJfe") %>% html_text()}) %>%
+    map(function(x){if(length(x)==0) x = NA_character_ else(x)})
+  article_board <- html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".Post_forum_1YYMfp") %>% html_text()})
+  article_text <- html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".Post_root_23_VRn") %>% html_text()})
+  article_love <- html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".jTOuHc") %>% html_text()})
+  article_reply <- html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".DJrdA") %>% html_text()})
+  article_date <- html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".Post_date_2ipeYS") %>% html_text()})
+  
+  df_article_tmp <- tibble(article_board=unlist(article_board),
+                           article_title=unlist(article_title),
+                           article_author=unlist(article_author),
+                           article_author_school=unlist(article_author_school),
+                           article_text=unlist(article_text),
+                           article_love=unlist(article_love),
+                           article_reply=unlist(article_reply),
+                           article_date=unlist(article_date),
+                           article_id = article_id)
+  # 留言部分
+  
+  comment_floor <-  html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".CommentEntry_floor_VtDUyr") %>% html_text()})
+  comment_author_school <-  html_raw_f %>% #.PostAuthorHeader_author_3O30xu span
+    map(function(x){x %>% html_nodes(".CommentEntry_author_2BO0i1 .PostAuthorHeader_author_3O30xu span") %>% html_text()})
+  comment_love <-  html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".jnzHNd") %>% html_text()})
+  comment_text <-  html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".CommentEntry_content_1ATrw1") %>% html_text()})
+  comment_time <-  html_raw_f %>% 
+    map(function(x){x %>% html_nodes(".CommentEntry_date_2E4vYF") %>% html_text()})
+  
+  df_comment_tmp <- pmap(list(comment_floor,comment_author_school,comment_text,comment_time),function(a,b,c,d)
+    {bind_cols(comment_floor=unlist(a),comment_author_school=unlist(b),comment_text=unlist(c),comment_time=unlist(d))})
+  
+  # 把每一個迴圈的文章與留言分別合併
+  
+  df_comment <- c(df_comment, df_comment_tmp)
+  df_article <- df_article %>% bind_rows(df_article_tmp)
+  
+  # 告訴自己進行到哪裡了, 並且讓迴圈休息以免連爬造成對方負擔
+  print(i)
+  tmsleep <- sample(5:7,1)
+  Sys.sleep(tmsleep)
+}
+
+### 關掉用不到的連線
+closeAllConnections()
+gc()
+```
+
+### 4. 分別整索引,主文,回文的資料表，依照需求連結不同資料表
+
+```{r warning=FALSE}
+### 看一下各自的長相
+df_index %>% dim()
+df_article %>% dim()
+df_comment %>% length()
+
+### 串主文與回應
+df_full <- df_article %>% left_join(df_comment, by = c("id"))
+```
+
+### 5. 將爬下的上傳到google spreadsheet(視需求也可輸出csv/excel/txt檔案)
+
+這邊稍作說明一下，從R上傳資料到google雲端有三個常用的套件，分別是```googlesheet```, ```googlesheet4```以及```googledrive```，```googlesheet```是專門針對google spreadsheet設計的，有很多實用的函數，譬如說將資料表上傳到特定分頁，或者更改某個儲存格的內容，操作上可以非常精細，但因為開發套件的作者現在主攻新版更好用的套件```googlesheet4```，所以```googlesheet```就沒在維護了，也因此這篇文章之中我以```googledrive```為主，它的功能就是可以靈活的處理googledrive裡面的資料，包含搜尋, 創建檔案, 更動檔案位置等等，對小翔來說最重要的就是能夠把爬下的資料上傳到google spreadsheet上，而這點可以透過```googledrive```輕鬆辦到!
+
+```{r warning=FALSE}
+library(googledrive)
+library(googlesheets4)
+
+### 存檔到本地磁碟
+df_index_newtag %>% 
+  add_row(index_date = ymd_hms(str_c(ymd(Sys.Date()), "10:00:01")),index_board = "=now()", index_title ='=IMPORTRANGE("https://docs.google.com/spreadsheets/OOO/","dcard_new!A2")') %>%
+  arrange(desc(index_date)) %>%
+  select(-index_wday) %>%
+  write_csv("df_article.csv")
+
+### 要先在google drive創立一個叫做crawler的資料夾，裡面再創一個叫做crawler_dcard的空gsheet
+gd_crawler_dcard <- drive_get("~/crawler/crawler_dcard")
+gd_crawler_dcard %>% drive_update(media = "df_article.csv")
+```
+
+### 6. 寄信給老闆小翔通知有什麼新的品牌相關討論
+
+這邊我使用的是```gmailr```套件，具體操作可以參考這篇[教學](https://github.com/jennybc/send-email-with-r)。在R裡面寫信不只很潮，厲害的是可以一次發送大量客製化信件給不同人，在上面的教學也可以看到作者示範，批改同學作業評分後將成績與評與寄給數十位同學，這就是R那麼好用的原因。實際寄信前需要參考教學先在google開發者申請api界接後才能得到信箱的存取權，但過程不會很難喔！
+
+```{r eval = FALSE, warning=FALSE}
+library(gmailr)
+library(glue)
+library(tableHTML)
+
+### 因為要有金鑰才能執行，所以底下這段僅是展示沒有真的呈現結果
+### 因為小翔希望每天早上十點更新，所以比晚於昨天早上十點的都貼上"new"的標籤
+df_index_newtag <- df_index %>% 
+  mutate(new_tag = if_else(index_date >= as.POSIXct(ymd_hms(str_c(ymd(Sys.Date()-1), "10:00:00")), tz="Asia/Taipei"), "new", "old")) %>%
+  mutate(hyperlink = str_c('=HYPERLINK("',index_link,'","',index_title,'")')) %>%
+  select(-id)
+
+### 讀取授權的金鑰檔案
+use_secret_file("gmailr-zara.json")
+
+### 篩選出"新的"討論
+df_index_email <- df_index_newtag %>%
+  filter(new_tag == "new") %>%
+  select(-c(new_tag, index_wday)) %>%
+  mutate(hyperlink = str_sub(index_link, 1, str_locate(index_link, "-")[,1]-1))
+
+### 把資料表變成html table
+msg = tableHTML(df_index_email)
+html_bod <- str_c("<p> Good Morning! There are ",dim(df_index_email)[1], " articles total. </p>", msg)
+
+### 寄信件
+mime() %>%
+  to("MKT_HYHsiang@gmail.com") %>%
+  from("BOSS_HYHsiang@gmail.com") %>%
+  subject(str_c("ZARA_morning_monitor_", ymd(Sys.Date()))) %>% 
+  html_body(html_bod) %>% 
+  send_message()
+```
+
+### 7. 每天都可以自動更新
+
+因為暫時使用mac，所以使用的是```cronR```套件排程，可以參考[官方網站]()，```cronR```的好處是提供add in，不用學function怎麼寫，直接用掛在rstudio上的add in 功能就好。若是windows系統，可以參考[教學]()。
+
