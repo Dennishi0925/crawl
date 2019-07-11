@@ -1,6 +1,7 @@
 # source('/Users/dtseng02/Documents/Initial Func(1).R')
 library(tidyverse)
 library(rvest)
+library(lubridate)
 library(httr)
 library(beepr)
 
@@ -37,14 +38,14 @@ df_index <- tibble(index_date,index_title,index_link,index_board,index_author,in
   rename(index_excerpt = index_content) %>%
   mutate(index_date = str_replace_all(index_date, "月", "-")) %>%
   mutate(index_date = str_remove_all(index_date, "日")) %>%
-  mutate(index_date = str_c(year(as.POSIXct(Sys.time(), tz="Asia/Taipei")), index_date, sep = "-")) %>%
+  mutate(index_date = str_c(lubridate::year(as.POSIXct(Sys.time(), tz="Asia/Taipei")), index_date, sep = "-")) %>%
   mutate(index_date = ymd_hm(index_date)) %>%
   mutate(index_wday = lubridate::wday(index_date)) %>% 
   mutate(id = row_number()) %>%
   select(index_date, index_board, index_title, index_excerpt, index_author, index_meta, index_link, index_wday, id)
 
 
- 
+
 ###3. 拿index去抓每篇文, 記得加上ID
 
 #前置作業: crawler function and df pre-wrote
@@ -123,7 +124,7 @@ for(i in 1:10) {
   
   #comment_love暫時不加入，因為還沒辦法處理刪文的愛心
   df_comment_tmp <- pmap(list(comment_floor,comment_author_school,comment_text,comment_time),function(a,b,c,d)
-    {bind_cols(comment_floor=unlist(a),comment_author_school=unlist(b),comment_text=unlist(c),comment_time=unlist(d))})
+  {bind_cols(comment_floor=unlist(a),comment_author_school=unlist(b),comment_text=unlist(c),comment_time=unlist(d))})
   
   # comment_author_school %>% map(function(x){x %>% length()}) %>% unlist() 
   # comment_love %>% map(function(x){x %>% length()}) %>% unlist() 
@@ -144,8 +145,7 @@ closeAllConnections()
 gc()
 
 ###4. 分成主文跟回文的data frame
-start_date <- as.POSIXct("2019-07-06 16:00:00 CST")
-week(as.POSIXct("2019-07-06 16:00:00 CST"))
+# start_date <- as.POSIXct("2019-07-06 16:00:00 CST")
 
 df_index %>% dim()
 df_article %>% dim()
@@ -154,28 +154,18 @@ df_comment %>% length()
 #存剛抓下來的檔案，用週數命名當備份
 df_index %>%
   write_csv(str_c("/Users/dtseng02/Documents/CRM/cralwer/df_article_",week(as.POSIXct(Sys.Date(), tz="Asia/Taipei")),".csv"))
-Sys.Date()
 
-#比昨天下午四點早的都貼new_tag
-df_index_newtag <- df_index %>% 
-  mutate(new_tag = if_else(index_date >= as.POSIXct(ymd_hms(str_c(ymd(Sys.Date()-1), "16:00:00")), tz="Asia/Taipei"), "new", "old")) %>%
+#比今天早上十點早的都貼new_tag
+df_index_newtag <- df_index %>%
+  mutate(new_tag = if_else(index_date >= as.POSIXct(ymd_hms(str_c(ymd(Sys.Date()), "10:00:00")), tz="Asia/Taipei"), "new", "old")) %>%
   mutate(hyperlink = str_c('=HYPERLINK("',index_link,'","',index_title,'")')) %>%
   select(-id)
-#比今天早上十點早的都貼new_tag
-# df_index_newtag <- df_index %>% 
-#   mutate(new_tag = if_else(index_date >= as.POSIXct(ymd_hms(str_c(ymd(Sys.Date()), "10:00:00")), tz="Asia/Taipei"), "new", "old")) %>%
-#   mutate(hyperlink = str_c('=HYPERLINK("',index_link,'","',index_title,'")')) %>%
-#   select(-id)
 
-df_index_newtag %>% 
-  add_row(index_date = ymd_hms(str_c(ymd(Sys.Date()), "10:00:01")),index_board = "=now()", index_title ='=IMPORTRANGE("https://docs.google.com/spreadsheets/d/15gTZDQgX2Su2K5znZBgxKXUkyR97-4J9iwrMctN_AVA/","dcard_new!A2")') %>%
+df_index_newtag %>%
+  add_row(index_date = ymd_hms(str_c(ymd(Sys.Date()), "16:00:01")),index_board = "=now()", index_title ='=IMPORTRANGE("https://docs.google.com/spreadsheets/d/15gTZDQgX2Su2K5znZBgxKXUkyR97-4J9iwrMctN_AVA/","dcard_new!A1")') %>%
   arrange(desc(index_date)) %>%
+  select(-index_wday) %>%
   write_csv("/Users/dtseng02/Documents/CRM/cralwer/df_article.csv")
-
-# df_index_newtag %>% 
-#   add_row(index_date = ymd_hms(str_c(ymd(Sys.Date()), "16:00:01")),index_board = "=now()", index_title ='=IMPORTRANGE("https://docs.google.com/spreadsheets/d/15gTZDQgX2Su2K5znZBgxKXUkyR97-4J9iwrMctN_AVA/","dcard_new!A1")') %>%
-#   arrange(desc(index_date))  %>%
-#   write_csv("/Users/dtseng02/Documents/CRM/cralwer/df_article.csv")
 
 ###5. 資料清洗後上傳到google drive
 library(googledrive)
@@ -202,11 +192,11 @@ test_email <- mime(
   From = "dennis.tseng@verizonmedia.com",
   Subject = "this is just a gmailr test",
   body = "Can you hear me now?")
-send_message(test_email)
+# send_message(test_email)
 
 library(tableHTML)
 msg = tableHTML(df_index_email)
-html_bod <- str_c("<p> There are ",dim(df_index_email)[1], " articles total. </p>", msg)
+html_bod <- str_c("<p> Good Afternoon! There are ",dim(df_index_email)[1], " articles total. </p>", msg)
 mime() %>%
   to("dennis.tseng@verizonmedia.com") %>%
   from("dennis.tseng@verizonmedia.com") %>%
